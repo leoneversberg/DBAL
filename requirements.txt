@@ -1,0 +1,6 @@
+matplotlib
+numpy
+Pillow
+scikit_learn
+torch
+torchvision==0.13
