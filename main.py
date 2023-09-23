@@ -9,9 +9,17 @@ from PIL import Image
 from sklearn.cluster import KMeans
 
 
-def display_images(images: list[str], columns=5, width=20, height=8):
-    """display images in a subplot,
-    based on https://keestalkstech.com/2020/05/plotting-a-grid-of-pil-images-in-jupyter/"""
+def display_images(images: list[str], columns: int=5, width: int=20, height: int=8):
+    """Display images in a subplot.
+    Based on https://keestalkstech.com/2020/05/plotting-a-grid-of-pil-images-in-jupyter/
+
+    Args:
+        images: List of paths to images.
+        columns: Number of columns in the display grid.
+        width: width in inches of the grid.
+        height: height in inches of the grid.
+
+    """
     height = max(height, int(len(images)/columns) * height)
     plt.figure(figsize=(width, height))
     for i, image in enumerate(images):
@@ -23,8 +31,8 @@ def display_images(images: list[str], columns=5, width=20, height=8):
 
 
 class Identity(torch.nn.Module):
-    """layer that does nothing (input = output),
-    based on https://discuss.pytorch.org/t/how-to-delete-layer-in-pretrained-model/17648/2"""
+    """Layer that does nothing (input = output).
+    Based on https://discuss.pytorch.org/t/how-to-delete-layer-in-pretrained-model/17648/2"""
     def __init__(self):
         super(Identity, self).__init__()
         
@@ -33,12 +41,21 @@ class Identity(torch.nn.Module):
 
 
 class DBAL:
-    """ active learning query strategy based on the paper 'Diverse mini-batch Active Learning' from Fedor Zhdanov
-        (https://doi.org/10.48550/arXiv.1901.05954)"""
+    """Active learning query strategy based on the paper 'Diverse mini-batch Active Learning' from Fedor Zhdanov.
+    Paper: https://doi.org/10.48550/arXiv.1901.05954).
+    
+    Args:
+        N: maximum number of queried samples (int) or None which uses all images.
+        k: number of queried samples.
+        beta: pre-filter factor. k samples will be selected out of beta * k images.
+        image_size: image will be resized to image_size as input to the Neural Network.
+        use_weighted_kmeans: if True, use weighted kmeans; if False, use normal kmeans.
+        
+    """
     def __init__(self, N=None, k: int=20, beta: int=10, image_size: int=224, use_weighted_kmeans: bool=True):
-        self.k = int(k) # number of queried samples
-        self.beta = beta # pre-filter factor
-        self.N = N # maximum number of images from the data (or None to use all images)
+        self.k = int(k)
+        self.beta = beta 
+        self.N = N 
         self.image_size = image_size # ImageNet is 224 x 224
         self.use_weighted_kmeans = use_weighted_kmeans
         assert self.beta*self.k<=self.N, "k * beta has to be smaller or equal to N"
@@ -61,7 +78,15 @@ class DBAL:
                                 std=[0.229, 0.224, 0.225])])
     
     def query(self, image_path: str) -> list[str]:
-        """run DBAL active learning strategy. returns list of selected images in image_path"""
+        """Run DBAL active learning strategy.
+
+        Args:
+            image_path: Path to a folder with images.
+
+        Returns:
+            List of selected images in image_path according to the query strategy.
+
+        """
         files = os.listdir(image_path)
         if (self.N == None):
             N = len(files)
